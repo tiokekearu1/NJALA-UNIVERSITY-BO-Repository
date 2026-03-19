@@ -1,0 +1,163 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based access control.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["super_admin", "school_admin", "lecturer", "student", "public"] },
+        "schoolId": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "programmeId": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "School": {
+      "title": "School",
+      "description": "Academic School within the University.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "Academic Department within a School.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "schoolId": { "type": "string" }
+      },
+      "required": ["id", "name", "schoolId"]
+    },
+    "Programme": {
+      "title": "Programme",
+      "description": "Academic Programme within a Department.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "departmentId": { "type": "string" }
+      },
+      "required": ["id", "name", "departmentId"]
+    },
+    "Dissertation": {
+      "title": "Dissertation",
+      "description": "Academic dissertation metadata and file reference.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "studentName": { "type": "string" },
+        "registrationNumber": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "supervisorName": { "type": "string" },
+        "year": { "type": "integer" },
+        "abstract": { "type": "string" },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "fileUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "revision_requested"] },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string" },
+        "downloadCount": { "type": "integer" },
+        "isDraft": { "type": "boolean" }
+      },
+      "required": ["title", "studentName", "registrationNumber", "programmeId", "departmentId", "schoolId", "year", "abstract", "fileUrl", "status", "uploadedBy"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application configuration.",
+      "type": "object",
+      "properties": {
+        "appName": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "allowPublicUploads": { "type": "boolean" },
+        "maintenanceMode": { "type": "boolean" },
+        "footerText": { "type": "string" },
+        "publicAccessOnly": { "type": "boolean" },
+        "footerLinks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Log of administrative actions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "performedBy": { "type": "string" },
+        "targetId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "details": { "type": "string" }
+      }
+    },
+    "Download": {
+      "title": "Download",
+      "description": "A record of a dissertation download event.",
+      "type": "object",
+      "properties": {
+        "dissertationId": { "type": "string" },
+        "dissertationTitle": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string", "description": "Optional user ID if logged in" },
+        "userName": { "type": "string" }
+      },
+      "required": ["dissertationId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/schools/{schoolId}": {
+      "schema": "School",
+      "description": "List of schools"
+    },
+    "/departments/{deptId}": {
+      "schema": "Department",
+      "description": "List of departments"
+    },
+    "/programmes/{progId}": {
+      "schema": "Programme",
+      "description": "List of programmes"
+    },
+    "/dissertations/{dissId}": {
+      "schema": "Dissertation",
+      "description": "Dissertation records"
+    },
+    "/settings/global": {
+      "schema": "Settings",
+      "description": "Global app settings"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Admin audit logs"
+    },
+    "/downloads/{downloadId}": {
+      "schema": "Download",
+      "description": "Dissertation download events"
+    }
+  }
+}

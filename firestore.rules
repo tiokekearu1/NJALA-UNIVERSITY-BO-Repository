@@ -1,0 +1,177 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    //   - uid: string (required)
+    //   - email: string (required, format: email)
+    //   - displayName: string
+    //   - role: string (required, enum: ['super_admin', 'school_admin', 'lecturer', 'student', 'public'])
+    //   - schoolId: string (optional)
+    //   - departmentId: string (optional)
+    //   - programmeId: string (optional)
+    //
+    // Collection: schools
+    //   - id: string (required)
+    //   - name: string (required)
+    //
+    // Collection: departments
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - schoolId: string (required)
+    //
+    // Collection: programmes
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - departmentId: string (required)
+    //
+    // Collection: dissertations
+    //   - id: string (required)
+    //   - title: string (required)
+    //   - studentName: string (required)
+    //   - registrationNumber: string (required)
+    //   - programmeId: string (required)
+    //   - departmentId: string (required)
+    //   - schoolId: string (required)
+    //   - supervisorName: string (required)
+    //   - year: int (required)
+    //   - abstract: string (required)
+    //   - keywords: list (optional)
+    //   - fileUrl: string (required)
+    //   - status: string (required, enum: ['pending', 'approved', 'rejected', 'revision_requested'])
+    //   - uploadedBy: string (required)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (required)
+    //   - summary: string (optional)
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "aweacademy2023@gmail.com" && request.auth.token.email_verified == true) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin'
+      );
+    }
+
+    function isSchoolAdmin() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'school_admin';
+    }
+
+    function isLecturer() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'lecturer';
+    }
+
+    function isStudent() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student';
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['super_admin', 'school_admin', 'lecturer', 'student', 'public'] &&
+             (!('schoolId' in data) || data.schoolId is string) &&
+             (!('departmentId' in data) || data.departmentId is string);
+    }
+
+    function isValidDissertation(data) {
+      return data.keys().hasAll(['title', 'studentName', 'registrationNumber', 'programmeId', 'departmentId', 'schoolId', 'year', 'abstract', 'fileUrl', 'status', 'uploadedBy']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 500 &&
+             data.studentName is string && data.studentName.size() > 0 &&
+             data.registrationNumber is string &&
+             data.year is int && data.year > 1900 && data.year < 2100 &&
+             data.abstract is string && data.abstract.size() > 0 &&
+             data.status in ['pending', 'approved', 'rejected', 'revision_requested'] &&
+             data.schoolId is string &&
+             data.departmentId is string &&
+             data.programmeId is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || (isSchoolAdmin() && getUserData().schoolId == resource.data.schoolId));
+      allow create: if isAuthenticated() && request.auth.uid == userId && isValidUser(request.resource.data) && (request.resource.data.role == 'student' || request.resource.data.role == 'public' || isAdmin());
+      allow update: if isAuthenticated() && (
+        isAdmin() || 
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role && request.resource.data.uid == resource.data.uid) ||
+        (isSchoolAdmin() && getUserData().schoolId == resource.data.schoolId && request.resource.data.role != 'super_admin')
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /departments/{deptId} {
+      allow read: if true;
+      allow write: if isAdmin() || (isSchoolAdmin() && getUserData().schoolId == request.resource.data.schoolId);
+    }
+
+    match /programmes/{progId} {
+      allow read: if true;
+      allow write: if isAdmin() || (isSchoolAdmin() && getUserData().schoolId == get(/databases/$(database)/documents/departments/$(request.resource.data.departmentId)).data.schoolId);
+    }
+
+    match /dissertations/{dissId} {
+      allow read: if resource.data.status == 'approved' || isAuthenticated();
+      
+      allow create: if isAuthenticated() && 
+                      (isStudent() || isAdmin() || isLecturer() || isSchoolAdmin()) && 
+                      request.resource.data.uploadedBy == request.auth.uid &&
+                      (isAdmin() || request.resource.data.status == 'pending') &&
+                      isValidDissertation(request.resource.data);
+      
+      allow update: if isAuthenticated() && (
+                      isAdmin() ||
+                      (isSchoolAdmin() && getUserData().schoolId == resource.data.schoolId) ||
+                      (isLecturer() && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'summary']))) ||
+                      (isOwner(resource.data.uploadedBy) && resource.data.status in ['pending', 'revision_requested'] && request.resource.data.status == 'pending') ||
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloadCount']))
+                    );
+      
+      allow delete: if isAdmin();
+    }
+
+    match /downloads/{downloadId} {
+      allow read: if isAuthenticated() && (isAdmin() || isSchoolAdmin() || isLecturer());
+      allow create: if true;
+    }
+  }
+}
