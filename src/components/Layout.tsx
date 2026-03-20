@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useSettings } from './SettingsContext';
 import { BookOpen, Search, Upload, LayoutDashboard, LogIn, LogOut, Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import LoginModal from './LoginModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,9 +13,10 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNavigatePage }) => {
-  const { user, profile, login, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const { settings } = useSettings();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const handleFooterLinkClick = (url: string) => {
     if (url.startsWith('/page/')) {
@@ -113,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
                   </div>
                 ) : (
                   <button
-                    onClick={login}
+                    onClick={() => setIsLoginModalOpen(true)}
                     className="flex items-center gap-2 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-sm hover:shadow-md"
                     style={{ backgroundColor: settings.primaryColor }}
                   >
@@ -181,7 +183,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
                 ))}
                 {!user && (
                   <button
-                    onClick={login}
+                    onClick={() => {
+                      setIsLoginModalOpen(true);
+                      setIsMenuOpen(false);
+                    }}
                     className="flex items-center gap-3 w-full px-3 py-3 rounded-md text-base font-medium transition-colors"
                     style={{ color: settings.primaryColor }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${settings.primaryColor}10`}
@@ -205,6 +210,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
           )}
         </AnimatePresence>
       </nav>
+
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

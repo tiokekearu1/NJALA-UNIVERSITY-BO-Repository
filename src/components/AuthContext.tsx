@@ -9,6 +9,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   login: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthReady: boolean;
 }
@@ -97,6 +99,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    try {
+      const { signInWithEmailAndPassword } = await import('../firebase');
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error('Email login error:', error);
+      throw error;
+    }
+  };
+
+  const registerWithEmail = async (email: string, pass: string, name: string) => {
+    try {
+      const { createUserWithEmailAndPassword, updateProfile } = await import('../firebase');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(userCredential.user, { displayName: name });
+    } catch (error) {
+      console.error('Email registration error:', error);
+      throw error;
     }
   };
 
@@ -109,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, logout, isAuthReady }}>
+    <AuthContext.Provider value={{ user, profile, loading, login, loginWithEmail, registerWithEmail, logout, isAuthReady }}>
       {children}
     </AuthContext.Provider>
   );
