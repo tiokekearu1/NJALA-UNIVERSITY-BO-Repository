@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAcademic } from '../components/AcademicContext';
+import { useSettings } from '../components/SettingsContext';
 import { ChevronRight, GraduationCap, Building2, BookOpen, ArrowRight, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -8,6 +9,7 @@ interface BrowseProps {
 }
 
 const Browse: React.FC<BrowseProps> = ({ onBrowse }) => {
+  const { settings } = useSettings();
   const { schools, departments } = useAcademic();
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
 
@@ -30,19 +32,25 @@ const Browse: React.FC<BrowseProps> = ({ onBrowse }) => {
               <button
                 key={school.id}
                 onClick={() => setSelectedSchoolId(school.id)}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left group ${
-                  selectedSchoolId === school.id
-                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-200'
-                    : 'bg-white border-stone-100 text-stone-700 hover:border-emerald-200 hover:bg-emerald-50'
-                }`}
+                className="w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left group"
+                style={{ 
+                  backgroundColor: selectedSchoolId === school.id ? settings.primaryColor : 'white',
+                  borderColor: selectedSchoolId === school.id ? settings.primaryColor : '#f5f5f4',
+                  color: selectedSchoolId === school.id ? 'white' : '#44403c',
+                  boxShadow: selectedSchoolId === school.id ? `0 10px 15px -3px ${settings.primaryColor}30` : 'none'
+                }}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl transition-colors ${
-                    selectedSchoolId === school.id ? 'bg-emerald-500' : 'bg-stone-50 group-hover:bg-emerald-100'
-                  }`}>
-                    <Building2 className={`w-5 h-5 ${
-                      selectedSchoolId === school.id ? 'text-white' : 'text-emerald-600'
-                    }`} />
+                  <div 
+                    className="p-2 rounded-xl transition-colors"
+                    style={{ 
+                      backgroundColor: selectedSchoolId === school.id ? 'rgba(255,255,255,0.2)' : '#f5f5f4'
+                    }}
+                  >
+                    <Building2 
+                      className="w-5 h-5" 
+                      style={{ color: selectedSchoolId === school.id ? 'white' : settings.primaryColor }}
+                    />
                   </div>
                   <span className="font-bold text-sm leading-tight">{school.name}</span>
                 </div>
@@ -72,7 +80,8 @@ const Browse: React.FC<BrowseProps> = ({ onBrowse }) => {
                   </div>
                   <button
                     onClick={() => onBrowse({ schoolId: selectedSchool.id })}
-                    className="flex items-center gap-2 text-emerald-600 font-bold text-sm hover:text-emerald-700 transition-colors"
+                    className="flex items-center gap-2 font-bold text-sm transition-colors hover:brightness-110"
+                    style={{ color: settings.primaryColor }}
                   >
                     View All in School
                     <ArrowRight className="w-4 h-4" />
@@ -84,17 +93,24 @@ const Browse: React.FC<BrowseProps> = ({ onBrowse }) => {
                     <button
                       key={dept.id}
                       onClick={() => onBrowse({ schoolId: selectedSchool.id, departmentId: dept.id })}
-                      className="flex flex-col items-start p-6 rounded-2xl border border-stone-100 bg-stone-50 hover:bg-white hover:border-emerald-200 hover:shadow-md transition-all group text-left"
+                      className="flex flex-col items-start p-6 rounded-2xl border border-stone-100 bg-stone-50 hover:bg-white hover:shadow-md transition-all group text-left"
+                      style={{ '--hover-border': settings.primaryColor } as any}
                     >
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-xl bg-white text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                        <div 
+                          className="p-2 rounded-xl bg-white transition-all shadow-sm group-hover:text-white"
+                          style={{ color: settings.primaryColor }}
+                        >
                           <GraduationCap className="w-5 h-5" />
                         </div>
-                        <h3 className="font-bold text-stone-800 group-hover:text-emerald-700 transition-colors leading-tight">
+                        <h3 className="font-bold text-stone-800 transition-colors leading-tight group-hover:text-stone-900">
                           {dept.name}
                         </h3>
                       </div>
-                      <div className="mt-auto flex items-center gap-2 text-xs font-bold text-stone-400 uppercase tracking-widest group-hover:text-emerald-500 transition-colors">
+                      <div 
+                        className="mt-auto flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors"
+                        style={{ color: '#a8a29e' }} // Default stone-400
+                      >
                         <span>Browse Research</span>
                         <Search className="w-3 h-3" />
                       </div>
@@ -103,13 +119,19 @@ const Browse: React.FC<BrowseProps> = ({ onBrowse }) => {
                 </div>
 
                 <div className="pt-8 border-t border-stone-100">
-                  <div className="flex items-center gap-4 p-6 rounded-2xl bg-emerald-50 border border-emerald-100">
-                    <div className="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                  <div 
+                    className="flex items-center gap-4 p-6 rounded-2xl border"
+                    style={{ backgroundColor: `${settings.primaryColor}10`, borderColor: `${settings.primaryColor}20` }}
+                  >
+                    <div 
+                      className="p-3 rounded-full"
+                      style={{ backgroundColor: `${settings.primaryColor}20`, color: settings.primaryColor }}
+                    >
                       <BookOpen className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-emerald-900">Academic Excellence</h4>
-                      <p className="text-emerald-700 text-sm leading-relaxed">
+                      <h4 className="font-bold" style={{ color: settings.primaryColor }}>Academic Excellence</h4>
+                      <p className="text-sm leading-relaxed opacity-80" style={{ color: settings.primaryColor }}>
                         Explore thousands of verified research papers from {selectedSchool.name}.
                       </p>
                     </div>

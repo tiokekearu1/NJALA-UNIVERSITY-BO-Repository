@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useAcademic } from '../components/AcademicContext';
+import { useSettings } from '../components/SettingsContext';
 import { db, storage, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { YEARS } from '../constants';
-import { summarizeAbstract } from '../services/geminiService';
-import { Upload as UploadIcon, FileText, CheckCircle, Loader2, AlertCircle, Trash2, Sparkles, Send } from 'lucide-react';
+import { Upload as UploadIcon, FileText, CheckCircle, Loader2, AlertCircle, Trash2, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Upload: React.FC = () => {
+  const { settings } = useSettings();
   const { user, profile } = useAuth();
   const { schools, departments } = useAcademic();
   const [file, setFile] = useState<File | null>(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,12 +69,7 @@ const Upload: React.FC = () => {
       const fileUrl = await getDownloadURL(uploadResult.ref);
       setIsUploadingFile(false);
 
-      // 2. AI Summarization
-      setIsSummarizing(true);
-      const summary = await summarizeAbstract(formData.abstract);
-      setIsSummarizing(false);
-
-      // 3. Save Metadata to Firestore
+      // 2. Save Metadata to Firestore
       const dissertationData = {
         ...formData,
         keywords: formData.keywords.split(',').map(k => k.trim()).filter(k => k !== ''),
@@ -83,7 +78,6 @@ const Upload: React.FC = () => {
         uploadedBy: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        summary,
         downloadCount: 0,
       };
 
@@ -94,7 +88,6 @@ const Upload: React.FC = () => {
       setError('Failed to upload dissertation. Please try again.');
     } finally {
       setIsUploadingFile(false);
-      setIsSummarizing(false);
     }
   };
 
@@ -105,7 +98,10 @@ const Upload: React.FC = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-2xl mx-auto text-center py-20 space-y-8 bg-white border border-stone-200 rounded-3xl shadow-xl"
       >
-        <div className="inline-flex p-6 rounded-full bg-emerald-100 text-emerald-600">
+        <div 
+          className="inline-flex p-6 rounded-full"
+          style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+        >
           <CheckCircle className="w-16 h-16" />
         </div>
         <div className="space-y-2">
@@ -116,7 +112,8 @@ const Upload: React.FC = () => {
         </div>
         <button
           onClick={() => window.location.reload()}
-          className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
+          className="text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:brightness-110"
+          style={{ backgroundColor: settings.primaryColor }}
         >
           Upload Another
         </button>
@@ -144,8 +141,14 @@ const Upload: React.FC = () => {
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
-                <div className="border-2 border-dashed border-stone-200 rounded-2xl p-12 text-center group-hover:border-emerald-400 group-hover:bg-emerald-50 transition-all">
-                  <div className="inline-flex p-4 rounded-full bg-stone-50 text-stone-400 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-all mb-4">
+                <div 
+                  className="border-2 border-dashed border-stone-200 rounded-2xl p-12 text-center transition-all"
+                  style={{ '--hover-border': settings.primaryColor } as any}
+                >
+                  <div 
+                    className="inline-flex p-4 rounded-full bg-stone-50 text-stone-400 transition-all mb-4"
+                    style={{ '--hover-bg': `${settings.primaryColor}15`, '--hover-text': settings.primaryColor } as any}
+                  >
                     <UploadIcon className="w-8 h-8" />
                   </div>
                   <p className="text-stone-900 font-bold mb-1">Click to upload or drag and drop</p>
@@ -153,14 +156,20 @@ const Upload: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+              <div 
+                className="flex items-center justify-between p-4 rounded-2xl border"
+                style={{ backgroundColor: `${settings.primaryColor}10`, borderColor: `${settings.primaryColor}20` }}
+              >
                 <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-emerald-600 text-white">
+                  <div 
+                    className="p-3 rounded-xl text-white"
+                    style={{ backgroundColor: settings.primaryColor }}
+                  >
                     <FileText className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-emerald-900 font-bold text-sm">{file.name}</p>
-                    <p className="text-emerald-600 text-xs">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="font-bold text-sm" style={{ color: settings.primaryColor }}>{file.name}</p>
+                    <p className="text-xs opacity-70" style={{ color: settings.primaryColor }}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                   </div>
                 </div>
                 <button
@@ -185,7 +194,8 @@ const Upload: React.FC = () => {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Enter the full title of your dissertation"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
               <div className="space-y-2">
@@ -195,7 +205,8 @@ const Upload: React.FC = () => {
                   type="text"
                   value={formData.studentName}
                   onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
               <div className="space-y-2">
@@ -206,7 +217,8 @@ const Upload: React.FC = () => {
                   value={formData.registrationNumber}
                   onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
                   placeholder="e.g. 2024/NJ/BO/..."
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
               <div className="space-y-2">
@@ -217,7 +229,8 @@ const Upload: React.FC = () => {
                   value={formData.supervisorName}
                   onChange={(e) => setFormData({ ...formData, supervisorName: e.target.value })}
                   placeholder="Dr./Prof. Full Name"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
             </div>
@@ -229,7 +242,8 @@ const Upload: React.FC = () => {
                   required
                   value={formData.schoolId}
                   onChange={(e) => setFormData({ ...formData, schoolId: e.target.value, departmentId: '' })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 >
                   <option value="">Select School</option>
                   {schools.map(school => (
@@ -244,7 +258,8 @@ const Upload: React.FC = () => {
                   value={formData.departmentId}
                   onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                   disabled={!formData.schoolId}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm disabled:opacity-50"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm disabled:opacity-50"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 >
                   <option value="">Select Department</option>
                   {availableDepartments.map(dept => (
@@ -258,7 +273,8 @@ const Upload: React.FC = () => {
                   required
                   value={formData.year}
                   onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 >
                   {YEARS.map(year => (
                     <option key={year} value={year}>{year}</option>
@@ -272,7 +288,8 @@ const Upload: React.FC = () => {
                   value={formData.keywords}
                   onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
                   placeholder="e.g. Health, Biostatistics, Sierra Leone"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
             </div>
@@ -281,10 +298,6 @@ const Upload: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-stone-400 uppercase tracking-widest">Abstract</label>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
-                <Sparkles className="w-3 h-3" />
-                AI Summary Enabled
-              </div>
             </div>
             <textarea
               required
@@ -292,7 +305,8 @@ const Upload: React.FC = () => {
               value={formData.abstract}
               onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
               placeholder="Paste your dissertation abstract here..."
-              className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm resize-none leading-relaxed"
+              className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 outline-none text-sm resize-none leading-relaxed"
+              style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
             />
           </div>
 
@@ -305,26 +319,29 @@ const Upload: React.FC = () => {
         </div>
 
         <div className="bg-stone-50 p-8 border-t border-stone-100 flex flex-col gap-6">
-          {(isUploadingFile || isSummarizing) && (
+          {isUploadingFile && (
             <div className="space-y-4">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest">
                 <span className="text-stone-500">
-                  {isUploadingFile ? 'Uploading Dissertation File...' : 'Generating AI Abstract Summary...'}
+                  Uploading Dissertation File...
                 </span>
-                <span className="text-emerald-600">
-                  {isUploadingFile ? `${uploadProgress}%` : 'Processing...'}
+                <span style={{ color: settings.primaryColor }}>
+                  {uploadProgress}%
                 </span>
               </div>
               <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: isUploadingFile ? `${uploadProgress}%` : '100%' }}
-                  className={`h-full ${isSummarizing ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600'}`}
+                  animate={{ width: `${uploadProgress}%` }}
+                  className="h-full"
+                  style={{ 
+                    backgroundColor: settings.primaryColor,
+                  }}
                 />
               </div>
               <div className="flex items-center gap-2 text-[10px] text-stone-400 font-medium">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                {isUploadingFile ? 'Securely transmitting your research to our servers.' : 'Our AI is analyzing your abstract for better discoverability.'}
+                Securely transmitting your research to our servers.
               </div>
             </div>
           )}
@@ -335,10 +352,11 @@ const Upload: React.FC = () => {
             </div>
             <button
               type="submit"
-              disabled={isUploadingFile || isSummarizing || !file}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isUploadingFile || !file}
+              className="flex items-center gap-2 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110"
+              style={{ backgroundColor: settings.primaryColor }}
             >
-              {isUploadingFile || isSummarizing ? (
+              {isUploadingFile ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Processing...

@@ -95,7 +95,7 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
 
       // Prepare Pie Data (by Status)
       const statusData = [
-        { name: 'Approved', value: newStats.approved, color: '#10b981' },
+        { name: 'Approved', value: newStats.approved, color: settings.primaryColor },
         { name: 'Pending', value: newStats.pending, color: '#f59e0b' },
         { name: 'Revision', value: newStats.revision, color: '#3b82f6' },
         { name: 'Rejected', value: newStats.rejected, color: '#ef4444' }
@@ -190,7 +190,7 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 space-y-4">
-        <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
+        <Loader2 className="w-12 h-12 animate-spin" style={{ color: settings.primaryColor }} />
         <p className="text-stone-400 font-bold uppercase tracking-widest text-xs">Loading Dashboard...</p>
       </div>
     );
@@ -204,7 +204,7 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-stone-900 flex items-center gap-3">
-            <LayoutDashboard className="w-8 h-8 text-emerald-600" />
+            <LayoutDashboard className="w-8 h-8" style={{ color: settings.primaryColor }} />
             {profile?.role.replace('_', ' ').toUpperCase()} Dashboard
           </h1>
           <p className="text-stone-500">Welcome back, {profile?.displayName}. Manage your academic research repository.</p>
@@ -214,37 +214,43 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
           <div className="flex flex-wrap bg-white border border-stone-200 rounded-2xl p-1 shadow-sm">
             <button
               onClick={() => setActiveSubTab('overview')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'overview' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'overview' ? 'text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              style={activeSubTab === 'overview' ? { backgroundColor: settings.primaryColor } : {}}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveSubTab('manage')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'manage' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'manage' ? 'text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              style={activeSubTab === 'manage' ? { backgroundColor: settings.primaryColor } : {}}
             >
               Manage
             </button>
             <button
               onClick={() => setActiveSubTab('users')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'users' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'users' ? 'text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              style={activeSubTab === 'users' ? { backgroundColor: settings.primaryColor } : {}}
             >
               Users
             </button>
             <button
               onClick={() => setActiveSubTab('academic')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'academic' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'academic' ? 'text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              style={activeSubTab === 'academic' ? { backgroundColor: settings.primaryColor } : {}}
             >
               Academic
             </button>
             <button
               onClick={() => setActiveSubTab('settings')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'settings' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'settings' ? 'text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              style={activeSubTab === 'settings' ? { backgroundColor: settings.primaryColor } : {}}
             >
               Settings
             </button>
             <button
               onClick={() => setActiveSubTab('audit')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'audit' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'audit' ? 'text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'}`}
+              style={activeSubTab === 'audit' ? { backgroundColor: settings.primaryColor } : {}}
             >
               Audit
             </button>
@@ -264,7 +270,7 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard label="Pending Approval" value={stats.pending} icon={Clock} color="text-amber-600" bg="bg-amber-50" border="border-amber-100" />
-              <StatCard label="Approved" value={stats.approved} icon={CheckCircle} color="text-emerald-600" bg="bg-emerald-50" border="border-emerald-100" />
+              <StatCard label="Approved" value={stats.approved} icon={CheckCircle} color="text-white" bg="bg-white" border="border-stone-100" primaryColor={settings.primaryColor} />
               <StatCard label="Total Downloads" value={stats.totalDownloads} icon={Download} color="text-blue-600" bg="bg-blue-50" border="border-blue-100" />
               <StatCard label="Total Submissions" value={stats.total} icon={FileText} color="text-stone-600" bg="bg-stone-50" border="border-stone-100" />
             </div>
@@ -364,12 +370,13 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
               <div className="bg-white border border-stone-200 rounded-3xl shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-stone-100 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-emerald-600" />
+                    <FileText className="w-5 h-5" style={{ color: settings.primaryColor }} />
                     Recent Submissions
                   </h3>
                   <button 
                     onClick={() => setActiveSubTab('manage')}
-                    className="text-xs font-bold text-emerald-600 uppercase tracking-widest hover:text-emerald-700 transition-colors"
+                    className="text-xs font-bold uppercase tracking-widest transition-colors"
+                    style={{ color: settings.primaryColor }}
                   >
                     View All
                   </button>
@@ -398,7 +405,16 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
                           <td className="px-6 py-4 text-right">
                             <button 
                               onClick={() => onViewDetail(diss.id)}
-                              className="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                              className="p-2 text-stone-400 rounded-lg transition-all"
+                              style={{ '--hover-bg': `${settings.primaryColor}15`, '--hover-text': settings.primaryColor } as any}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = `${settings.primaryColor}15`;
+                                e.currentTarget.style.color = settings.primaryColor;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '';
+                                e.currentTarget.style.color = '';
+                              }}
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -470,12 +486,16 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
               <div className="flex items-center gap-4">
                 <h3 className="text-lg font-bold text-stone-900">Manage Submissions</h3>
                 {selectedDissIds.length > 0 && (
-                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl animate-in fade-in slide-in-from-left-2">
-                    <span className="text-xs font-bold text-emerald-700">{selectedDissIds.length} Selected</span>
-                    <div className="h-4 w-px bg-emerald-200 mx-1" />
+                  <div 
+                    className="flex items-center gap-2 border px-3 py-1.5 rounded-xl animate-in fade-in slide-in-from-left-2"
+                    style={{ backgroundColor: `${settings.primaryColor}10`, borderColor: `${settings.primaryColor}20` }}
+                  >
+                    <span className="text-xs font-bold" style={{ color: settings.primaryColor }}>{selectedDissIds.length} Selected</span>
+                    <div className="h-4 w-px mx-1" style={{ backgroundColor: `${settings.primaryColor}30` }} />
                     <button 
                       onClick={() => handleBulkStatusUpdate('approved')}
-                      className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
+                      className="text-[10px] font-bold uppercase tracking-widest hover:brightness-110"
+                      style={{ color: settings.primaryColor }}
                     >
                       Approve All
                     </button>
@@ -499,7 +519,8 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
                 <input 
                   type="text" 
                   placeholder="Filter by name or title..." 
-                  className="pl-10 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none w-full md:w-64"
+                  className="pl-10 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-sm focus:ring-2 outline-none w-full md:w-64"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
             </div>
@@ -512,7 +533,8 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
                         type="checkbox" 
                         checked={selectedDissIds.length === dissertations.length && dissertations.length > 0}
                         onChange={toggleSelectAll}
-                        className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                        className="rounded border-stone-300 focus:ring-2"
+                        style={{ color: settings.primaryColor, '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                       />
                     </th>
                     <th className="px-6 py-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest">Title & Author</th>
@@ -524,13 +546,18 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
                 </thead>
                 <tbody className="divide-y divide-stone-100">
                   {dissertations.map((diss) => (
-                    <tr key={diss.id} className={`hover:bg-stone-50/50 transition-colors group ${selectedDissIds.includes(diss.id) ? 'bg-emerald-50/30' : ''}`}>
+                    <tr 
+                      key={diss.id} 
+                      className="hover:bg-stone-50/50 transition-colors group"
+                      style={selectedDissIds.includes(diss.id) ? { backgroundColor: `${settings.primaryColor}08` } : {}}
+                    >
                       <td className="px-6 py-4">
                         <input 
                           type="checkbox" 
                           checked={selectedDissIds.includes(diss.id)}
                           onChange={() => toggleSelect(diss.id)}
-                          className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                          className="rounded border-stone-300 focus:ring-2"
+                          style={{ color: settings.primaryColor, '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                         />
                       </td>
                       <td className="px-6 py-4">
@@ -562,7 +589,16 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
                         <div className="flex items-center justify-end gap-2">
                           <button 
                             onClick={() => onViewDetail(diss.id)}
-                            className="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                            className="p-2 text-stone-400 rounded-lg transition-all"
+                            style={{ '--hover-bg': `${settings.primaryColor}15`, '--hover-text': settings.primaryColor } as any}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = `${settings.primaryColor}15`;
+                              e.currentTarget.style.color = settings.primaryColor;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '';
+                              e.currentTarget.style.color = '';
+                            }}
                             title="View Details"
                           >
                             <Eye className="w-4 h-4" />
@@ -582,7 +618,20 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
                             <div className="flex items-center gap-1">
                               <button 
                                 onClick={() => handleStatusUpdate(diss.id, 'approved')}
-                                className={`p-2 rounded-lg transition-all ${diss.status === 'approved' ? 'text-emerald-600 bg-emerald-50' : 'text-stone-400 hover:text-emerald-600 hover:bg-emerald-50'}`}
+                                className="p-2 rounded-lg transition-all"
+                                style={diss.status === 'approved' ? { backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor } : { color: '#a8a29e' }}
+                                onMouseEnter={(e) => {
+                                  if (diss.status !== 'approved') {
+                                    e.currentTarget.style.backgroundColor = `${settings.primaryColor}15`;
+                                    e.currentTarget.style.color = settings.primaryColor;
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (diss.status !== 'approved') {
+                                    e.currentTarget.style.backgroundColor = '';
+                                    e.currentTarget.style.color = '#a8a29e';
+                                  }
+                                }}
                                 title="Approve"
                               >
                                 <Check className="w-4 h-4" />
@@ -661,9 +710,15 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
   );
 };
 
-const StatCard = ({ label, value, icon: Icon, color, bg, border }: any) => (
-  <div className={`p-6 rounded-3xl border ${border} ${bg} shadow-sm space-y-4`}>
-    <div className={`inline-flex p-3 rounded-2xl bg-white shadow-sm ${color}`}>
+const StatCard = ({ label, value, icon: Icon, color, bg, border, primaryColor }: any) => (
+  <div 
+    className={`p-6 rounded-3xl border shadow-sm space-y-4 ${border} ${bg}`}
+    style={primaryColor ? { backgroundColor: `${primaryColor}05`, borderColor: `${primaryColor}15` } : {}}
+  >
+    <div 
+      className={`inline-flex p-3 rounded-2xl bg-white shadow-sm ${color}`}
+      style={primaryColor ? { color: primaryColor } : {}}
+    >
       <Icon className="w-6 h-6" />
     </div>
     <div>
@@ -674,9 +729,15 @@ const StatCard = ({ label, value, icon: Icon, color, bg, border }: any) => (
 );
 
 const StatusBadge = ({ status }: { status: DissertationStatus }) => {
-  const configs = {
+  const { settings } = useSettings();
+  const configs: Record<DissertationStatus, { label: string; color: string; icon: any; style?: React.CSSProperties }> = {
     pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: Clock },
-    approved: { label: 'Approved', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+    approved: { 
+      label: 'Approved', 
+      color: '', 
+      style: { backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor },
+      icon: CheckCircle 
+    },
     rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700', icon: XCircle },
     revision_requested: { label: 'Revision', color: 'bg-blue-100 text-blue-700', icon: RefreshCcw },
   };
@@ -685,7 +746,10 @@ const StatusBadge = ({ status }: { status: DissertationStatus }) => {
   const Icon = config.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${config.color}`}>
+    <span 
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${config.color}`}
+      style={config.style}
+    >
       <Icon className="w-3 h-3" />
       {config.label}
     </span>

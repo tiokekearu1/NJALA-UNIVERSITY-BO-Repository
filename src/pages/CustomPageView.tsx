@@ -20,7 +20,8 @@ const CustomPageView: React.FC<CustomPageViewProps> = ({ slug, onBack }) => {
         <p className="text-stone-500">The page you are looking for does not exist.</p>
         <button 
           onClick={onBack}
-          className="mt-6 text-emerald-600 font-bold hover:underline flex items-center gap-2 mx-auto"
+          className="mt-6 font-bold hover:underline flex items-center gap-2 mx-auto transition-colors"
+          style={{ color: settings.primaryColor }}
         >
           <ArrowLeft className="w-4 h-4" />
           Go Back
@@ -46,7 +47,10 @@ const CustomPageView: React.FC<CustomPageViewProps> = ({ slug, onBack }) => {
       <div className="bg-white border border-stone-200 rounded-3xl shadow-sm overflow-hidden">
         <div className="p-8 md:p-12">
           <h1 className="text-3xl md:text-5xl font-bold text-stone-900 mb-8">{page.title}</h1>
-          <div className="prose prose-stone max-w-none prose-headings:text-stone-900 prose-p:text-stone-600 prose-a:text-emerald-600">
+          <div 
+            className="prose prose-stone max-w-none prose-headings:text-stone-900 prose-p:text-stone-600"
+            style={{ '--tw-prose-links': settings.primaryColor } as React.CSSProperties}
+          >
             <ReactMarkdown>{page.content}</ReactMarkdown>
           </div>
         </div>

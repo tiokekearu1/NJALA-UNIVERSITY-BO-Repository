@@ -3,6 +3,7 @@ import { collection, query, where, getDocs, orderBy, limit, startAfter, QueryCon
 import { db } from '../firebase';
 import { Dissertation, DissertationStatus } from '../types';
 import { useAcademic } from '../components/AcademicContext';
+import { useSettings } from '../components/SettingsContext';
 import { YEARS } from '../constants';
 import { Search as SearchIcon, Filter, SlidersHorizontal, BookOpen, User, Calendar, GraduationCap, ChevronRight, ChevronLeft, Loader2, Download, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,6 +13,7 @@ interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
+  const { settings } = useSettings();
   const { schools, departments } = useAcademic();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Dissertation[]>([]);
@@ -81,26 +83,35 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="relative max-w-3xl mx-auto group">
         <div className="relative">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5 group-focus-within:text-emerald-500 transition-colors" />
+          <SearchIcon 
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5 transition-colors" 
+            style={{ color: searchTerm ? settings.primaryColor : undefined }}
+          />
           <input
             type="text"
             placeholder="Search by exact keyword (e.g. Agriculture, AI, Education)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-32 py-4 bg-white border border-stone-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none text-stone-800"
+            className="w-full pl-12 pr-32 py-4 bg-white border border-stone-200 rounded-2xl shadow-sm focus:ring-2 transition-all outline-none text-stone-800"
+            style={{ '--tw-ring-color': settings.primaryColor, borderColor: searchTerm ? settings.primaryColor : undefined } as React.CSSProperties}
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-2 rounded-xl transition-all ${showFilters ? 'bg-emerald-100 text-emerald-700' : 'text-stone-400 hover:bg-stone-100'}`}
+              className="p-2 rounded-xl transition-all"
+              style={{ 
+                backgroundColor: showFilters ? `${settings.primaryColor}20` : 'transparent',
+                color: showFilters ? settings.primaryColor : '#a8a29e'
+              }}
               title="Filters"
             >
               <SlidersHorizontal className="w-5 h-5" />
             </button>
             <button
               type="submit"
-              className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-emerald-700 transition-all shadow-sm"
+              className="text-white px-6 py-2 rounded-xl font-semibold transition-all shadow-sm hover:brightness-110"
+              style={{ backgroundColor: settings.primaryColor }}
             >
               Search
             </button>
@@ -123,7 +134,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                 <select
                   value={filters.schoolId}
                   onChange={(e) => setFilters({ ...filters, schoolId: e.target.value, departmentId: '' })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 >
                   <option value="">All Schools</option>
                   {schools.map(school => (
@@ -137,7 +149,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                   value={filters.departmentId}
                   onChange={(e) => setFilters({ ...filters, departmentId: e.target.value })}
                   disabled={!filters.schoolId}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm disabled:opacity-50"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm disabled:opacity-50"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 >
                   <option value="">All Departments</option>
                   {availableDepartments.map(dept => (
@@ -150,7 +163,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                 <select
                   value={filters.year}
                   onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 >
                   <option value="">All Years</option>
                   {YEARS.map(year => (
@@ -165,7 +179,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                   placeholder="Exact student name..."
                   value={filters.studentName}
                   onChange={(e) => setFilters({ ...filters, studentName: e.target.value })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
               <div className="space-y-2">
@@ -175,7 +190,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                   placeholder="Exact supervisor name..."
                   value={filters.supervisorName}
                   onChange={(e) => setFilters({ ...filters, supervisorName: e.target.value })}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                  style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
                 />
               </div>
             </div>
@@ -195,7 +211,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="text-xs bg-white border border-stone-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="text-xs bg-white border border-stone-200 rounded-lg px-2 py-1 outline-none focus:ring-2"
+                style={{ '--tw-ring-color': `${settings.primaryColor}40` } as React.CSSProperties}
               >
                 <option value="createdAt">Recent</option>
                 <option value="year">Year</option>
@@ -221,7 +238,7 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
+            <Loader2 className="w-12 h-12 animate-spin" style={{ color: settings.primaryColor }} />
             <p className="text-stone-400 font-medium tracking-widest uppercase text-xs">Loading Research...</p>
           </div>
         ) : results.length > 0 ? (
@@ -232,13 +249,17 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                 layout
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="group bg-white border border-stone-200 rounded-2xl p-6 hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer"
+                className="group bg-white border border-stone-200 rounded-2xl p-6 transition-all cursor-pointer"
+                style={{ '--hover-border': settings.primaryColor } as any}
                 onClick={() => onViewDetail(diss.id)}
               >
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex-1 space-y-4">
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-xl font-bold text-stone-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                      <h3 
+                        className="text-xl font-bold text-stone-900 transition-colors line-clamp-2"
+                        style={{ color: 'inherit' }} // Will be handled by group-hover if we use a class, but let's use a more direct approach
+                      >
                         {diss.title}
                       </h3>
                       <span className="shrink-0 px-3 py-1 rounded-full bg-stone-100 text-stone-500 text-[10px] font-bold uppercase tracking-widest">
@@ -248,11 +269,11 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm">
                       <div className="flex items-center gap-2 text-stone-600">
-                        <User className="w-4 h-4 text-emerald-500" />
+                        <User className="w-4 h-4" style={{ color: settings.primaryColor }} />
                         <span className="font-medium">{diss.studentName}</span>
                       </div>
                       <div className="flex items-center gap-2 text-stone-600">
-                        <GraduationCap className="w-4 h-4 text-emerald-500" />
+                        <GraduationCap className="w-4 h-4" style={{ color: settings.primaryColor }} />
                         <span>{schools.find(s => s.id === diss.schoolId)?.name || 'Unknown School'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-stone-500 italic">
@@ -267,7 +288,11 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
 
                     <div className="flex flex-wrap gap-2">
                       {diss.keywords?.slice(0, 5).map(tag => (
-                        <span key={tag} className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold uppercase tracking-wider">
+                        <span 
+                          key={tag} 
+                          className="px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider"
+                          style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+                        >
                           #{tag}
                         </span>
                       ))}
@@ -277,7 +302,8 @@ const Search: React.FC<SearchProps> = ({ onViewDetail }) => {
                   <div className="md:w-48 flex flex-col justify-center gap-3 border-t md:border-t-0 md:border-l border-stone-100 pt-4 md:pt-0 md:pl-6">
                     <button 
                       onClick={(e) => { e.stopPropagation(); onViewDetail(diss.id); }}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 transition-all shadow-sm"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white text-sm font-bold transition-all shadow-sm hover:brightness-110"
+                      style={{ backgroundColor: settings.primaryColor }}
                     >
                       <Eye className="w-4 h-4" />
                       View Details

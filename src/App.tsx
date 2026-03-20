@@ -24,8 +24,14 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-stone-50 space-y-6">
         <div className="relative">
-          <div className="w-24 h-24 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
-          <GraduationCap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 text-emerald-600" />
+          <div 
+            className="w-24 h-24 border-4 rounded-full animate-spin"
+            style={{ borderTopColor: settings.primaryColor, borderColor: `${settings.primaryColor}20` }}
+          ></div>
+          <GraduationCap 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10" 
+            style={{ color: settings.primaryColor }}
+          />
         </div>
         <div className="text-center space-y-2">
           <h2 className="text-xl font-bold text-stone-900 tracking-tight">Njala University Repository</h2>

@@ -52,4 +52,4 @@ export const ACADEMIC_STRUCTURE = {
   ]
 };
 
-export const YEARS = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
+export const YEARS = Array.from({ length: 30 }, (_, i) => 2035 - i);

@@ -12,7 +12,7 @@ interface SettingsContextType {
 
 const DEFAULT_SETTINGS: AppSettings = {
   appName: 'Njala University Bo Campus Dissertation Repository',
-  primaryColor: '#059669', // emerald-600
+  primaryColor: '#1c1917', // stone-900 (neutral)
   allowPublicUploads: true,
   maintenanceMode: false,
   footerText: '© ' + new Date().getFullYear() + ' Njala University. All Rights Reserved.',
@@ -59,7 +59,7 @@ const DEFAULT_SETTINGS: AppSettings = {
       title: 'Njala University Bo Campus',
       subtitle: 'Official University Repository',
       content: 'Empowering students and researchers with a modern digital platform for academic excellence and knowledge preservation.',
-      backgroundConfig: { type: 'solid', color: '#064e3b' },
+      backgroundConfig: { type: 'solid', color: '#1c1917' }, // Stone-900
       textColor: '#ffffff',
       buttonText: 'Search Repository',
       buttonAction: 'search',
@@ -69,7 +69,7 @@ const DEFAULT_SETTINGS: AppSettings = {
       id: 'stats',
       type: 'stats',
       items: [
-        { id: 's1', title: 'Dissertations', value: '2,450+', icon: 'BookOpen', color: 'text-emerald-600' },
+        { id: 's1', title: 'Dissertations', value: '2,450+', icon: 'BookOpen', color: 'text-stone-600' },
         { id: 's2', title: 'Researchers', value: '1,200+', icon: 'GraduationCap', color: 'text-blue-600' },
         { id: 's3', title: 'Downloads', value: '15,000+', icon: 'Download', color: 'text-purple-600' },
         { id: 's4', title: 'Verified', value: '100%', icon: 'ShieldCheck', color: 'text-amber-600' },
@@ -113,13 +113,29 @@ const DEFAULT_SETTINGS: AppSettings = {
       buttonAction: 'upload',
       order: 3
     }
-  ]
+  ],
+  aiSummaryEnabled: true
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
+const LOCAL_STORAGE_KEY = 'nudr_app_settings';
+
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  // Try to load initial settings from localStorage to prevent flickering
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        } catch (e) {
+          console.error('Error parsing saved settings:', e);
+        }
+      }
+    }
+    return DEFAULT_SETTINGS;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -128,7 +144,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const unsubscribe = onSnapshot(settingsRef, 
       (snapshot) => {
         if (snapshot.exists()) {
-          setSettings({ ...DEFAULT_SETTINGS, ...snapshot.data() } as AppSettings);
+          const newSettings = { ...DEFAULT_SETTINGS, ...snapshot.data() } as AppSettings;
+          setSettings(newSettings);
+          // Save to localStorage for future reloads
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSettings));
+          }
         } else {
           // Initialize with defaults if not exists
           setDoc(settingsRef, DEFAULT_SETTINGS);
@@ -137,7 +158,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       (error) => {
         console.error('Settings snapshot error:', error);
-        // Even if it fails, we should stop loading and use defaults
+        // Even if it fails, we should stop loading and use whatever we have (cached or default)
         setLoading(false);
       }
     );

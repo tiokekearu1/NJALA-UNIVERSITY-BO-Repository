@@ -96,7 +96,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
                     {profile?.photoURL ? (
                       <img src={profile.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-stone-200" referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+                      >
                         <User className="w-4 h-4" />
                       </div>
                     )}
@@ -125,7 +128,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-md text-stone-600 hover:text-emerald-600 hover:bg-stone-100"
+                className="p-2 rounded-md text-stone-600 hover:bg-stone-100 transition-colors"
+                style={{ '--hover-color': settings.primaryColor } as any}
+                onMouseEnter={(e) => e.currentTarget.style.color = settings.primaryColor}
+                onMouseLeave={(e) => e.currentTarget.style.color = ''}
               >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -150,11 +156,24 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
                       setActiveTab(item.id);
                       setIsMenuOpen(false);
                     }}
-                    className={`flex items-center gap-3 w-full px-3 py-3 rounded-md text-base font-medium ${
+                    className={`flex items-center gap-3 w-full px-3 py-3 rounded-md text-base font-medium transition-colors ${
                       activeTab === item.id 
-                        ? 'bg-emerald-50 text-emerald-700' 
-                        : 'text-stone-600 hover:text-emerald-600 hover:bg-stone-100'
+                        ? '' 
+                        : 'text-stone-600 hover:bg-stone-100'
                     }`}
+                    style={{
+                      ...(activeTab === item.id ? { backgroundColor: `${settings.primaryColor}10`, color: settings.primaryColor } : {}),
+                    }}
+                    onMouseEnter={(e) => {
+                      if (activeTab !== item.id) {
+                        e.currentTarget.style.color = settings.primaryColor;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeTab !== item.id) {
+                        e.currentTarget.style.color = '';
+                      }
+                    }}
                   >
                     <item.icon className="w-5 h-5" />
                     {item.label}
@@ -163,7 +182,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
                 {!user && (
                   <button
                     onClick={login}
-                    className="flex items-center gap-3 w-full px-3 py-3 rounded-md text-base font-medium text-emerald-600 hover:bg-emerald-50"
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-md text-base font-medium transition-colors"
+                    style={{ color: settings.primaryColor }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${settings.primaryColor}10`}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                   >
                     <LogIn className="w-5 h-5" />
                     Sign In

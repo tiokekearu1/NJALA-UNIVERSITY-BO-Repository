@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useSettings } from '../components/SettingsContext';
 import { useAuth } from '../components/AuthContext';
-import { Settings, Save, Palette, Globe, Shield, AlertTriangle, Image as ImageIcon, CheckCircle, Loader2, Plus, Trash2, ExternalLink, Layout, ChevronUp, ChevronDown, Type, MousePointer2, RefreshCcw } from 'lucide-react';
+import { Settings, Save, Palette, Globe, Shield, AlertTriangle, Image as ImageIcon, CheckCircle, Loader2, Plus, Trash2, ExternalLink, Layout, ChevronUp, ChevronDown, Type, MousePointer2, RefreshCcw, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { HomeSection, HomeSectionType, HomeSectionItem, BackgroundConfig } from '../types';
+import { storage } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const BackgroundPicker: React.FC<{
   config: BackgroundConfig | undefined;
@@ -121,11 +123,15 @@ const COMMON_ICONS = [
 
 const AdminSettings: React.FC = () => {
   const { profile } = useAuth();
-  const { settings, updateSettings, restoreDefaults } = useSettings();
+  const { settings, updateSettings, restoreDefaults, loading } = useSettings();
   const [formData, setFormData] = useState(settings);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [restoreType, setRestoreType] = useState<'home' | 'all'>('home');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     branding: true,
     home: true,
@@ -133,6 +139,22 @@ const AdminSettings: React.FC = () => {
     footerLinks: true,
     customPages: true,
   });
+
+  // Sync formData with settings once they are loaded
+  React.useEffect(() => {
+    if (!loading) {
+      setFormData(settings);
+    }
+  }, [loading, settings]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <Loader2 className="w-12 h-12 animate-spin" style={{ color: settings.primaryColor }} />
+        <p className="text-stone-400 font-bold uppercase tracking-widest text-xs">Loading Settings...</p>
+      </div>
+    );
+  }
 
   const toggleSection = (section: string) => {
     const mainSections = ['branding', 'home', 'system', 'footerLinks', 'customPages'];
@@ -276,12 +298,16 @@ const AdminSettings: React.FC = () => {
     });
   };
 
-  const handleRestoreDefaults = async (type: 'home' | 'all') => {
-    if (!window.confirm(`Are you sure you want to restore ${type === 'home' ? 'home page' : 'all'} defaults? This cannot be undone.`)) return;
-    
+  const handleRestoreClick = (type: 'home' | 'all') => {
+    setRestoreType(type);
+    setIsRestoreModalOpen(true);
+  };
+
+  const confirmRestore = async () => {
+    setIsRestoreModalOpen(false);
     setRestoring(true);
     try {
-      await restoreDefaults(type);
+      await restoreDefaults(restoreType);
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
@@ -289,6 +315,8 @@ const AdminSettings: React.FC = () => {
       }, 1500);
     } catch (error) {
       console.error('Error restoring defaults:', error);
+      setError('Failed to restore defaults. Please try again.');
+      setTimeout(() => setError(null), 3000);
     } finally {
       setRestoring(false);
     }
@@ -302,6 +330,39 @@ const AdminSettings: React.FC = () => {
       </div>
     );
   }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file.');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File size should be less than 2MB.');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const storageRef = ref(storage, `branding/logo_${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadUrl = await getDownloadURL(storageRef);
+      setFormData(prev => ({ ...prev, logoUrl: downloadUrl }));
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      setError('Failed to upload logo. Please try again.');
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -411,23 +472,71 @@ const AdminSettings: React.FC = () => {
               </div>
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="text-xs font-bold text-stone-400 uppercase tracking-widest">Logo URL (Optional)</label>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <input
-                    type="url"
-                    value={formData.logoUrl || ''}
-                    onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                    placeholder="https://example.com/logo.png"
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
-                    style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
-                  />
-                </div>
-                {formData.logoUrl && (
-                  <div className="w-12 h-12 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-center overflow-hidden">
-                    <img src={formData.logoUrl} alt="Preview" className="w-full h-full object-contain" />
+              <label className="text-xs font-bold text-stone-400 uppercase tracking-widest">Application Logo</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1 block">Upload Logo</label>
+                      <label className="flex items-center justify-center gap-2 w-full p-3 bg-stone-50 border border-stone-200 border-dashed rounded-xl hover:bg-stone-100 transition-colors cursor-pointer group">
+                        {isUploadingLogo ? (
+                          <Loader2 className="w-4 h-4 text-stone-400 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4 text-stone-400 group-hover:text-stone-600" />
+                        )}
+                        <span className="text-sm text-stone-500 group-hover:text-stone-700">
+                          {isUploadingLogo ? 'Uploading...' : 'Choose Image File'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          disabled={isUploadingLogo}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
-                )}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1 block">Or Logo URL</label>
+                      <input
+                        type="url"
+                        value={formData.logoUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                        placeholder="https://example.com/logo.png"
+                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 outline-none text-sm"
+                        style={{ '--tw-ring-color': settings.primaryColor } as React.CSSProperties}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-center justify-center p-6 bg-stone-50 border border-stone-200 rounded-2xl">
+                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-4">Logo Preview</label>
+                  {formData.logoUrl ? (
+                    <div className="relative group">
+                      <div className="w-32 h-32 rounded-xl bg-white border border-stone-100 shadow-sm flex items-center justify-center overflow-hidden p-4">
+                        <img src={formData.logoUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, logoUrl: '' }))}
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 rounded-xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center text-stone-400">
+                      <ImageIcon className="w-8 h-8 mb-2 opacity-20" />
+                      <span className="text-[10px] font-medium">No Logo</span>
+                    </div>
+                  )}
+                  <p className="mt-4 text-[10px] text-stone-400 text-center max-w-[200px]">
+                    Recommended: Transparent PNG or SVG. Max size 2MB.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -450,7 +559,7 @@ const AdminSettings: React.FC = () => {
             <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
               <button 
                 type="button"
-                onClick={() => handleRestoreDefaults('home')}
+                onClick={() => handleRestoreClick('home')}
                 className="text-[10px] font-bold text-red-600 hover:text-red-700 px-2 py-1 border border-red-200 rounded-lg bg-red-50 transition-colors"
               >
                 Restore Home Defaults
@@ -593,7 +702,12 @@ const AdminSettings: React.FC = () => {
                       <div className="md:col-span-2 space-y-4 pt-4 border-t border-stone-200">
                         <div className="flex items-center justify-between">
                           <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Items / Cards</label>
-                          <button type="button" onClick={() => addSectionItem(section.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                          <button 
+                            type="button" 
+                            onClick={() => addSectionItem(section.id)} 
+                            className="text-[10px] font-bold flex items-center gap-1 transition-colors hover:opacity-80"
+                            style={{ color: settings.primaryColor }}
+                          >
                             <Plus className="w-3 h-3" /> Add Item
                           </button>
                         </div>
@@ -938,7 +1052,7 @@ const AdminSettings: React.FC = () => {
         <div className="flex justify-between items-center pt-4">
           <button
             type="button"
-            onClick={() => handleRestoreDefaults('all')}
+            onClick={() => handleRestoreClick('all')}
             className="text-stone-400 hover:text-red-600 transition-colors text-xs font-bold uppercase tracking-widest flex items-center gap-2"
           >
             <RefreshCcw className="w-4 h-4" />
@@ -969,6 +1083,67 @@ const AdminSettings: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Restore Confirmation Modal */}
+      <AnimatePresence>
+        {isRestoreModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsRestoreModalOpen(false)}
+              className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden"
+            >
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <RefreshCcw className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-stone-900 mb-2">Restore Defaults?</h3>
+                <p className="text-stone-500 mb-8">
+                  Are you sure you want to restore {restoreType === 'home' ? 'home page' : 'all'} defaults? 
+                  This will overwrite your current settings and cannot be undone.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsRestoreModalOpen(false)}
+                    className="flex-1 px-6 py-3 bg-stone-100 text-stone-600 font-bold rounded-xl hover:bg-stone-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmRestore}
+                    className="flex-1 px-6 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors shadow-lg shadow-red-200"
+                  >
+                    Yes, Restore
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[110] px-6 py-3 bg-red-500 text-white rounded-2xl shadow-xl font-bold flex items-center gap-2"
+          >
+            <AlertTriangle className="w-5 h-5" />
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

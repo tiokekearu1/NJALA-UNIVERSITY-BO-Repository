@@ -111,7 +111,10 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 space-y-4">
-        <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
+        <div 
+          className="w-16 h-16 border-4 rounded-full animate-spin"
+          style={{ borderColor: `${settings.primaryColor}20`, borderTopColor: settings.primaryColor }}
+        ></div>
         <p className="text-stone-400 font-bold uppercase tracking-widest text-xs">Retrieving Research...</p>
       </div>
     );
@@ -121,7 +124,13 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
     return (
       <div className="text-center py-20">
         <h2 className="text-2xl font-bold text-stone-900">Dissertation not found</h2>
-        <button onClick={onBack} className="mt-4 text-emerald-600 font-bold">Go Back</button>
+        <button 
+          onClick={onBack} 
+          className="mt-4 font-bold"
+          style={{ color: settings.primaryColor }}
+        >
+          Go Back
+        </button>
       </div>
     );
   }
@@ -139,10 +148,10 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-stone-500 hover:text-emerald-600 transition-colors font-semibold text-sm"
+        className="flex items-center gap-2 text-stone-500 transition-colors font-semibold text-sm group"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Search
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" style={{ color: settings.primaryColor }} />
+        <span className="group-hover:opacity-80 transition-opacity" style={{ color: settings.primaryColor }}>Back to Search</span>
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -155,7 +164,10 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
           >
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-widest">
+                <span 
+                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                  style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+                >
                   Approved Research
                 </span>
                 <span className="px-3 py-1 rounded-full bg-stone-100 text-stone-500 text-[10px] font-bold uppercase tracking-widest">
@@ -171,14 +183,14 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Author</p>
                 <div className="flex items-center gap-2 text-stone-900 font-bold">
-                  <User className="w-4 h-4 text-emerald-600" />
+                  <User className="w-4 h-4" style={{ color: settings.primaryColor }} />
                   {diss.studentName}
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Supervisor</p>
                 <div className="flex items-center gap-2 text-stone-900 font-bold">
-                  <GraduationCap className="w-4 h-4 text-emerald-600" />
+                  <GraduationCap className="w-4 h-4" style={{ color: settings.primaryColor }} />
                   {diss.supervisorName}
                 </div>
               </div>
@@ -194,7 +206,7 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
 
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-600" />
+                <FileText className="w-5 h-5" style={{ color: settings.primaryColor }} />
                 Abstract
               </h3>
               <p className="text-stone-600 text-sm leading-relaxed whitespace-pre-wrap">
@@ -203,12 +215,21 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
             </div>
 
             {diss.summary && (
-              <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 space-y-3">
-                <h3 className="text-sm font-bold text-emerald-900 flex items-center gap-2 uppercase tracking-widest">
+              <div 
+                className="p-6 rounded-2xl border space-y-3"
+                style={{ backgroundColor: `${settings.primaryColor}08`, borderColor: `${settings.primaryColor}20` }}
+              >
+                <h3 
+                  className="text-sm font-bold flex items-center gap-2 uppercase tracking-widest"
+                  style={{ color: settings.primaryColor }}
+                >
                   <Sparkles className="w-4 h-4" />
                   AI-Generated Summary
                 </h3>
-                <p className="text-emerald-800 text-sm leading-relaxed italic">
+                <p 
+                  className="text-sm leading-relaxed italic"
+                  style={{ color: `${settings.primaryColor}cc` }}
+                >
                   "{diss.summary}"
                 </p>
               </div>
@@ -323,7 +344,7 @@ const DissertationDetail: React.FC<DissertationDetailProps> = ({ dissId, onBack 
 
             <div className="pt-6 border-t border-stone-800 space-y-4">
               <div className="flex items-center gap-3 text-xs text-stone-400">
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <CheckCircle className="w-4 h-4" style={{ color: settings.primaryColor }} />
                 <span>Verified by Njala University Library</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-stone-400">

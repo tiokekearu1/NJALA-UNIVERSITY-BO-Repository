@@ -116,6 +116,7 @@ export interface AppSettings {
   footerLinks: FooterLink[];
   homeSections?: HomeSection[];
   customPages?: CustomPage[];
+  aiSummaryEnabled?: boolean;
 }
 
 export interface AuditLog {
