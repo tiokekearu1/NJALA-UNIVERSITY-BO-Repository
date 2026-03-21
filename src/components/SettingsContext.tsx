@@ -11,7 +11,7 @@ interface SettingsContextType {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  appName: 'Njala University Bo Campus Dissertation Repository',
+  appName: 'NU Dissertation Repo',
   primaryColor: '#1c1917', // stone-900 (neutral)
   allowPublicUploads: true,
   maintenanceMode: false,
@@ -56,8 +56,8 @@ const DEFAULT_SETTINGS: AppSettings = {
     {
       id: 'hero',
       type: 'hero',
-      title: 'Njala University Bo Campus',
-      subtitle: 'Official University Repository',
+      title: 'NU Dissertation Repo',
+      subtitle: 'Njala University Bo Campus Official Repository',
       content: 'Empowering students and researchers with a modern digital platform for academic excellence and knowledge preservation.',
       backgroundConfig: { type: 'solid', color: '#1c1917' }, // Stone-900
       textColor: '#ffffff',

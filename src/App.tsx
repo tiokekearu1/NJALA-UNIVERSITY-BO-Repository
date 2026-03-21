@@ -34,7 +34,7 @@ const AppContent: React.FC = () => {
           />
         </div>
         <div className="text-center space-y-2">
-          <h2 className="text-xl font-bold text-stone-900 tracking-tight">Njala University Repository</h2>
+          <h2 className="text-xl font-bold text-stone-900 tracking-tight">NU Dissertation Repo</h2>
           <p className="text-stone-400 font-bold uppercase tracking-widest text-[10px] animate-pulse">Initializing Secure Session...</p>
         </div>
       </div>
