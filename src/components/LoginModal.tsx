@@ -55,26 +55,29 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+          initial={{ opacity: 0, y: '100%' }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col"
         >
-          <div className="relative p-8">
+          <div className="relative p-6 sm:p-8 overflow-y-auto">
+            <div className="w-12 h-1.5 bg-stone-200 rounded-full mx-auto mb-6 sm:hidden" />
+            
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-600 transition-colors"
+              className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-600 transition-colors hidden sm:block"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-stone-900 tracking-tight">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
                 {isRegister ? 'Create an Account' : 'Welcome Back'}
               </h2>
-              <p className="text-stone-500 text-sm mt-2">
+              <p className="text-stone-500 text-xs sm:text-sm mt-2">
                 {isRegister 
                   ? 'Join the Njala University academic community' 
                   : 'Sign in to access your research dashboard'}
