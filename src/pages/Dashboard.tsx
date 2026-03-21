@@ -15,12 +15,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useSettings } from '../components/SettingsContext';
 
 const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onViewDetail }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { settings } = useSettings();
   const { schools, departments } = useAcademic();
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'manage' | 'settings' | 'audit' | 'academic' | 'users'>('overview');
   const [dissertations, setDissertations] = useState<Dissertation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDissIds, setSelectedDissIds] = useState<string[]>([]);
   const [stats, setStats] = useState({
     total: 0,
@@ -103,8 +104,13 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
       setPieData(statusData);
 
       setLoading(false);
+      setError(null);
     }, (err) => {
-      handleFirestoreError(err, OperationType.LIST, 'dissertations');
+      console.error('Dissertations snapshot error:', err);
+      setError('Failed to load dashboard data. This might be due to missing database indexes or permissions.');
+      setLoading(false);
+      // We don't throw here to prevent crashing the whole dashboard
+      // handleFirestoreError(err, OperationType.LIST, 'dissertations');
     });
 
     // Fetch Download Trends & History (Admins only)
@@ -131,7 +137,9 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
 
         setDownloadTrendData(trendData);
       }, (err) => {
-        handleFirestoreError(err, OperationType.LIST, 'downloads');
+        console.error('Downloads snapshot error:', err);
+        // Don't throw to prevent blocking the dashboard
+        // handleFirestoreError(err, OperationType.LIST, 'downloads');
       });
     }
 
@@ -187,11 +195,47 @@ const Dashboard: React.FC<{ onViewDetail: (dissId: string) => void }> = ({ onVie
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 space-y-4">
         <Loader2 className="w-12 h-12 animate-spin" style={{ color: settings.primaryColor }} />
         <p className="text-stone-400 font-bold uppercase tracking-widest text-xs">Loading Dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 space-y-6 max-w-md mx-auto text-center">
+        <div className="p-4 bg-stone-100 rounded-full">
+          <Shield className="w-12 h-12 text-stone-400" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-stone-900">Access Restricted</h2>
+          <p className="text-stone-500 text-sm">Please sign in to access your dashboard and manage submissions.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 space-y-6 max-w-md mx-auto text-center">
+        <div className="p-4 bg-red-50 rounded-full">
+          <AlertCircle className="w-12 h-12 text-red-500" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-stone-900">Dashboard Error</h2>
+          <p className="text-stone-500 text-sm">{error}</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-6 py-2 rounded-xl text-white font-bold shadow-lg hover:brightness-110 transition-all flex items-center gap-2"
+          style={{ backgroundColor: settings.primaryColor }}
+        >
+          <RefreshCcw className="w-4 h-4" />
+          Retry Loading
+        </button>
       </div>
     );
   }
