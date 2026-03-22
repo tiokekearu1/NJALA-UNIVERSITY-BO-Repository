@@ -6,6 +6,9 @@ import Search from './pages/Search';
 import Browse from './pages/Browse';
 import Upload from './pages/Upload';
 import Dashboard from './pages/Dashboard';
+import TestManagement from './pages/TestManagement';
+import TestTaking from './pages/TestTaking';
+import ExamResults from './pages/ExamResults';
 import DissertationDetail from './pages/DissertationDetail';
 import CustomPageView from './pages/CustomPageView';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -72,6 +75,12 @@ const AppContent: React.FC = () => {
         return <Upload />;
       case 'dashboard':
         return <Dashboard onViewDetail={handleViewDetail} />;
+      case 'tests':
+        return <TestTaking />;
+      case 'test-management':
+        return <TestManagement />;
+      case 'results':
+        return <ExamResults />;
       case 'detail':
         return selectedDissId ? (
           <DissertationDetail dissId={selectedDissId} onBack={handleBack} />

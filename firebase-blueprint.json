@@ -124,6 +124,86 @@
         "userName": { "type": "string" }
       },
       "required": ["dissertationId", "timestamp"]
+    },
+    "Test": {
+      "title": "Test",
+      "description": "An academic test or exam.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "duration": { "type": "integer", "description": "Duration in minutes" },
+        "status": { "type": "string", "enum": ["draft", "published", "archived"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "schoolId", "departmentId", "programmeId", "status", "createdBy"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "A question within a test.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "testId": { "type": "string" },
+        "type": { "type": "string", "enum": ["link", "file", "audio", "yes_no", "typing"] },
+        "prompt": { "type": "string" },
+        "order": { "type": "integer" },
+        "points": { "type": "integer" }
+      },
+      "required": ["testId", "type", "prompt", "order"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "A student's submission for a test.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "testId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionId": { "type": "string" },
+              "value": { "type": "string" },
+              "fileUrl": { "type": "string" },
+              "link": { "type": "string" }
+            }
+          }
+        },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "graded"] },
+        "score": { "type": "number" },
+        "gradedBy": { "type": "string" }
+      },
+      "required": ["testId", "studentId", "submittedAt", "status"]
+    },
+    "ExamResult": {
+      "title": "ExamResult",
+      "description": "Final published exam result for a student.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "registrationNumber": { "type": "string" },
+        "testId": { "type": "string" },
+        "testTitle": { "type": "string" },
+        "score": { "type": "number" },
+        "grade": { "type": "string" },
+        "comments": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "publishedBy": { "type": "string" }
+      },
+      "required": ["studentId", "testId", "score", "grade", "publishedAt", "publishedBy"]
     }
   },
   "firestore": {
@@ -158,6 +238,22 @@
     "/downloads/{downloadId}": {
       "schema": "Download",
       "description": "Dissertation download events"
+    },
+    "/tests/{testId}": {
+      "schema": "Test",
+      "description": "Academic tests"
+    },
+    "/tests/{testId}/questions/{questionId}": {
+      "schema": "Question",
+      "description": "Questions for a test"
+    },
+    "/submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "Student test submissions"
+    },
+    "/exam_results/{resultId}": {
+      "schema": "ExamResult",
+      "description": "Published exam results"
     }
   }
 }

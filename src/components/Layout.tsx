@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useSettings } from './SettingsContext';
-import { BookOpen, Search, Upload, LayoutDashboard, LogIn, LogOut, Menu, X, User } from 'lucide-react';
+import { BookOpen, Search, Upload, LayoutDashboard, LogIn, LogOut, Menu, X, User, GraduationCap, Trophy, ClipboardList } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import LoginModal from './LoginModal';
 
@@ -13,7 +13,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNavigatePage }) => {
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logout, isAdmin, isLecturer, isSchoolAdmin, isStudent } = useAuth();
   const { settings } = useSettings();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -33,6 +33,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onNa
     { id: 'browse', label: 'Browse', icon: Menu },
     ...(user ? [{ id: 'upload', label: 'Upload', icon: Upload }] : []),
     ...(user ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
+    ...(isStudent() ? [{ id: 'tests', label: 'Tests', icon: GraduationCap }] : []),
+    ...(isAdmin() || isLecturer() || isSchoolAdmin() ? [{ id: 'test-management', label: 'Test Mgmt', icon: ClipboardList }] : []),
+    ...(user ? [{ id: 'results', label: 'Results', icon: Trophy }] : []),
   ];
 
   return (

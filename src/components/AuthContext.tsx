@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from '../firebase';
 import { UserProfile, UserRole } from '../types';
 
@@ -13,6 +13,11 @@ interface AuthContextType {
   registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthReady: boolean;
+  isAdmin: () => boolean;
+  isLecturer: () => boolean;
+  isSchoolAdmin: () => boolean;
+  isStudent: () => boolean;
+  userProfile: UserProfile | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -118,6 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { createUserWithEmailAndPassword, updateProfile } = await import('../firebase');
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       await updateProfile(userCredential.user, { displayName: name });
+      
+      // Update firestore profile with the name
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      await updateDoc(userDocRef, { displayName: name });
     } catch (error) {
       console.error('Email registration error:', error);
       throw error;
@@ -132,8 +141,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const isAdmin = () => profile?.role === 'super_admin';
+  const isLecturer = () => profile?.role === 'lecturer';
+  const isSchoolAdmin = () => profile?.role === 'school_admin';
+  const isStudent = () => profile?.role === 'student';
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, loginWithEmail, registerWithEmail, logout, isAuthReady }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      userProfile: profile,
+      loading, 
+      login, 
+      loginWithEmail, 
+      registerWithEmail, 
+      logout, 
+      isAuthReady,
+      isAdmin,
+      isLecturer,
+      isSchoolAdmin,
+      isStudent
+    }}>
       {children}
     </AuthContext.Provider>
   );

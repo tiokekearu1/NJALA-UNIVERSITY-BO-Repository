@@ -129,3 +129,61 @@ export interface AuditLog {
   details: any;
   timestamp: Timestamp;
 }
+
+export type QuestionType = 'link' | 'file' | 'audio' | 'yes_no' | 'typing';
+
+export interface Test {
+  id: string;
+  title: string;
+  description: string;
+  schoolId: string;
+  departmentId: string;
+  programmeId: string;
+  duration: number;
+  status: 'draft' | 'published' | 'archived';
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface Question {
+  id: string;
+  testId: string;
+  type: QuestionType;
+  prompt: string;
+  order: number;
+  points: number;
+}
+
+export interface Answer {
+  questionId: string;
+  value?: string;
+  fileUrl?: string;
+  link?: string;
+}
+
+export interface Submission {
+  id: string;
+  testId: string;
+  studentId: string;
+  studentName: string;
+  answers: Answer[];
+  submittedAt: Timestamp;
+  status: 'pending' | 'graded';
+  score?: number;
+  gradedBy?: string;
+}
+
+export interface ExamResult {
+  id: string;
+  studentId: string;
+  studentName: string;
+  registrationNumber: string;
+  testId: string;
+  testTitle: string;
+  score: number;
+  grade: string;
+  comments?: string;
+  publishedAt: Timestamp;
+  publishedBy: string;
+}

@@ -114,7 +114,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || (isSchoolAdmin() && getUserData().schoolId == resource.data.schoolId));
-      allow create: if isAuthenticated() && request.auth.uid == userId && isValidUser(request.resource.data) && (request.resource.data.role == 'student' || request.resource.data.role == 'public' || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId && isValidUser(request.resource.data) && (request.resource.data.role == 'student' || request.resource.data.role == 'public' || isAdmin() || request.auth.token.email == "aweacademy2023@gmail.com");
       allow update: if isAuthenticated() && (
         isAdmin() || 
         (request.auth.uid == userId && request.resource.data.role == resource.data.role && request.resource.data.uid == resource.data.uid) ||
@@ -172,6 +172,31 @@ service cloud.firestore {
     match /downloads/{downloadId} {
       allow read: if isAuthenticated() && (isAdmin() || isSchoolAdmin() || isLecturer());
       allow create: if true;
+    }
+
+    match /tests/{testId} {
+      allow read: if isAuthenticated() && (resource.data.status == 'published' || isAdmin() || isLecturer() || isSchoolAdmin());
+      allow create: if isAuthenticated() && (isAdmin() || isLecturer() || isSchoolAdmin());
+      allow update: if isAuthenticated() && (isAdmin() || isLecturer() || isSchoolAdmin());
+      allow delete: if isAdmin();
+
+      match /questions/{questionId} {
+        allow read: if isAuthenticated() && (get(/databases/$(database)/documents/tests/$(testId)).data.status == 'published' || isAdmin() || isLecturer() || isSchoolAdmin());
+        allow create, update: if isAuthenticated() && (isAdmin() || isLecturer() || isSchoolAdmin());
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin() || isLecturer() || isSchoolAdmin());
+      allow create: if isAuthenticated() && isStudent() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isAuthenticated() && (isAdmin() || isLecturer() || isSchoolAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /exam_results/{resultId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin() || isLecturer() || isSchoolAdmin());
+      allow write: if isAdmin() || isSchoolAdmin();
     }
   }
 }
